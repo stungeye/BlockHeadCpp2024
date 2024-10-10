@@ -38,30 +38,38 @@ void AProcMesh::Tick(float DeltaTime)
     {
         TArray<FVector> UpdatedPositions;
 
-        // Scale down to a small range for Perlin noise (suggestion: ~0.01 or 0.001)
-        float NoiseScale = 0.001f;   // This will make the large world space positions small enough for Perlin noise
-        float NoiseHeight = 500.0f;   // Amplitude of the noise
-        float NoiseSpeed = 0.75f;     // Speed of movement through the noise field
-
         for (int32 i = 0; i < MeshSection->ProcVertexBuffer.Num(); i++)
         {
             FVector VertexPosition = MeshSection->ProcVertexBuffer[i].Position;
+            float NoiseValue{ 0.0f };
 
-            // Scale down large world space positions before passing to Perlin noise
-            FVector2D NoisePosition{
-                VertexPosition.X * NoiseScale,  // Scale down X
-                (VertexPosition.Y * NoiseScale) + (Time * NoiseSpeed)  // Scale down Y and move over time
-            };
+			if (NoiseType == ENoiseType::Perlin2D)
+			{
+				FVector2D NoisePosition{
+					VertexPosition.X * NoiseScale,  // Scale down X
+					(VertexPosition.Y * NoiseScale) + (Time * NoiseSpeed)  // Scale down Y and move over time
+				};
 
-            // Use 2D Perlin noise with the scaled-down inputs
-            float NoiseValue = FMath::PerlinNoise2D(NoisePosition);
+				// Use 2D Perlin noise with the scaled-down inputs
+				NoiseValue = FMath::PerlinNoise2D(NoisePosition);
+			}
+			else if (NoiseType == ENoiseType::Perlin3D)
+			{
+
+				FVector NoisePosition{
+					VertexPosition.X * NoiseScale,  // Scale down X
+					(VertexPosition.Y * NoiseScale),
+					(Time * NoiseSpeed)  // Move through Z over time
+				};
+				// Use 3D Perlin noise with the scaled-down inputs
+				NoiseValue = FMath::PerlinNoise3D(NoisePosition);
+			}
 
             // Adjust Z value with noise
             VertexPosition.Z = NoiseValue * NoiseHeight;
 
             UpdatedPositions.Add(VertexPosition);
             /*
-            // Log the scaled-down positions for debugging
             if (i % 100 == 0)  // Log every 100th vertex for clarity
             {
                 UE_LOG(LogTemp, Warning, TEXT("Vertex Position: %s"), *VertexPosition.ToString());
@@ -71,7 +79,6 @@ void AProcMesh::Tick(float DeltaTime)
             */
         }
         
-
         // Update the mesh section with new vertex positions
         ProceduralMesh->UpdateMeshSection(0, UpdatedPositions, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>());
     }
@@ -85,10 +92,6 @@ void AProcMesh::GenerateMesh()
     TArray<FVector2D> UV0;
     TArray<FLinearColor> VertexColors;
     TArray<FProcMeshTangent> Tangents;
-
-    // Grid dimensions
-    int32 GridSize = 150;
-    float GridSpacing = 100.0f;
 
     // Create vertices for a grid
     for (int32 y = 0; y < GridSize; y++)
