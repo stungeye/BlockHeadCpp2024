@@ -24,7 +24,8 @@ protected:
 	// Construction script:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	// Uproperty and instanced static mesh component
+	// Uproperty and instanced static mesh component. 
+	// Previously was: UInstancedStaticMeshComponent* InstancedStaticMeshComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UInstancedStaticMeshComponent> InstancedStaticMeshComponent;
 
