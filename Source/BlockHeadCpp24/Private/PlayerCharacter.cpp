@@ -3,6 +3,12 @@
 #include "Logging/StructuredLog.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "InputActionValue.h"
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
+
+using UEnhancedInputSys = UEnhancedInputLocalPlayerSubsystem;
+using UEnhancedInputComp = UEnhancedInputComponent;
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -35,6 +41,22 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (const APlayerController* PlayerController{ Cast<APlayerController>(GetController()) }) {
+		const ULocalPlayer* LocalPlayer{ PlayerController->GetLocalPlayer() };
+		if (UEnhancedInputSys* SubSystem{ ULocalPlayer::GetSubsystem<UEnhancedInputSys>(LocalPlayer) }) {
+			SubSystem->AddMappingContext(InputMappingContext, 0);
+		}
+	}
+}
+
+void APlayerCharacter::MoveRightLeft(const FInputActionValue& Value)
+{
+	const float MovementAxis{ Value.Get<float>() };
+	
+	if (!bLevelEnded) {
+		const FVector CubeForce(0.0, MovementAxis * SideForce, 0.0);
+		Cube->AddForce(CubeForce, NAME_None, true);
+	}
 }
 
 // Called every frame
@@ -42,12 +64,19 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!bLevelEnded) {
+		const FVector CubeForce(ForwardForce, 0.0, 0.0);
+		Cube->AddForce(CubeForce, NAME_None, true);
+	}
+
 }
 
 // Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	if (UEnhancedInputComp* EnhancedComponent{ CastChecked<UEnhancedInputComp>(PlayerInputComponent) }) {
+		EnhancedComponent->BindAction(MoveRightLeftInputAction, ETriggerEvent::Triggered, this, &APlayerCharacter::MoveRightLeft);
+	}
 }
 

@@ -4,10 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+// #include "InputActionValue.h" // Needed if the forward declare for FInputAction doesn't work.
 #include "PlayerCharacter.generated.h"
+
 
 class USpringArmComponent;
 class UCameraComponent;
+class UInputMappingContext;
+class UInputAction;
+struct FInputActionValue; // TODO: Did this work?
 
 UCLASS()
 class BLOCKHEADCPP24_API APlayerCharacter : public APawn
@@ -30,6 +35,22 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> Camera;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	TObjectPtr<UInputMappingContext> InputMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> MoveRightLeftInputAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float ForwardForce{ 1900 };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float SideForce{ 1800 };
+
+	bool bLevelEnded{ false };
+
+	void MoveRightLeft(const FInputActionValue& Value);
 
 public:	
 	// Called every frame
