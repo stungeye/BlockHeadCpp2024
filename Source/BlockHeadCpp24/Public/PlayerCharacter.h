@@ -51,11 +51,11 @@ protected:
 
 	void MoveRightLeft(const FInputActionValue& Value);
 
-	//UFUNCTION() // Required to bind to dynamic multi-cast delegate.
+	UFUNCTION() // Required to bind to dynamic multi-cast delegate.
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 			UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
-//	UFUNCTION() // The names of these functions don't matter, but the signature does.
+	UFUNCTION() // The names of these functions don't matter, but the signature does.
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 			const FHitResult& SweepResult);
