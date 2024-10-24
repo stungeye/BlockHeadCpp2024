@@ -4,15 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-// #include "InputActionValue.h" // Needed if the forward declare for FInputAction doesn't work.
 #include "PlayerCharacter.generated.h"
 
-
+// Forward Declarations:
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
-struct FInputActionValue; // TODO: Did this work?
+struct FInputActionValue; 
 
 UCLASS()
 class BLOCKHEADCPP24_API APlayerCharacter : public APawn
@@ -51,6 +50,15 @@ protected:
 	bool bLevelEnded{ false };
 
 	void MoveRightLeft(const FInputActionValue& Value);
+
+	//UFUNCTION() // Required to bind to dynamic multi-cast delegate.
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+			UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+
+//	UFUNCTION() // The names of these functions don't matter, but the signature does.
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+			const FHitResult& SweepResult);
 
 public:	
 	// Called every frame

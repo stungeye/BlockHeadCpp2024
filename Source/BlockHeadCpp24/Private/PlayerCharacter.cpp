@@ -6,6 +6,8 @@
 #include "InputActionValue.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Obstacle.h"
+#include "EndPoint.h"
 
 using UEnhancedInputSys = UEnhancedInputLocalPlayerSubsystem;
 using UEnhancedInputComp = UEnhancedInputComponent;
@@ -18,7 +20,7 @@ APlayerCharacter::APlayerCharacter()
 	
 	Cube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
 	Cube->SetSimulatePhysics(true);
-	Cube->SetNotifyRigidBodyCollision(true);
+	Cube->SetNotifyRigidBodyCollision(true); // Generate Hit Events
 	RootComponent = Cube;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -41,11 +43,18 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
 	if (const APlayerController* PlayerController{ Cast<APlayerController>(GetController()) }) {
 		const ULocalPlayer* LocalPlayer{ PlayerController->GetLocalPlayer() };
 		if (UEnhancedInputSys* SubSystem{ ULocalPlayer::GetSubsystem<UEnhancedInputSys>(LocalPlayer) }) {
 			SubSystem->AddMappingContext(InputMappingContext, 0);
 		}
+	}
+
+	// Bind my dynamic delegates for on hit and on component overlap:
+	if (Cube) {
+		Cube->OnComponentHit.AddDynamic(this, &APlayerCharacter::OnHit);
+		Cube->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlap);
 	}
 }
 
@@ -56,6 +65,21 @@ void APlayerCharacter::MoveRightLeft(const FInputActionValue& Value)
 	if (!bLevelEnded) {
 		const FVector CubeForce(0.0, MovementAxis * SideForce, 0.0);
 		Cube->AddForce(CubeForce, NAME_None, true);
+	}
+}
+
+void APlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor->IsA(AObstacle::StaticClass())) {
+		UE_LOGFMT(LogTemp, Warning, "We hit an obstacle! BOOM BOOM BOOM!");
+	}
+}
+
+void APlayerCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->IsA(AEndPoint::StaticClass())) {
+		bLevelEnded = true;
+		UE_LOGFMT(LogTemp, Warning, "Reached the end point!");
 	}
 }
 
